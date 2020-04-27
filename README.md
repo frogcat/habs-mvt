@@ -9,7 +9,7 @@ MVT port of HABS
 
 # Demo
 
-- <https://frogcat.github.io/habs-vt/>
+- <https://frogcat.github.io/habs-mvt/>
 
 # Usage
 
@@ -19,7 +19,7 @@ MVT port of HABS
 
 # License
 
-- 本レポジトリで提供するデータのライセンスは (CC-BY 4.0)[https://creativecommons.org/licenses/by/4.0/deed.ja] となります
+- 本レポジトリで提供するデータのライセンスは [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.ja) となります
 - デモのための HTML および javascript は MIT ライセンスです
 
 # Note
