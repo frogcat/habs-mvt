@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>habs-mvt</title>
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <link href="https://api.mapbox.com/mapbox-gl-js/v1.9.1/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v1.9.1/mapbox-gl.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
+
+    #list {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: auto;
+      height: auto;
+      background: white;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    #list ul {
+      margin: 5px;
+      padding: 0;
+      list-style: none;
+    }
+
+    #list label {
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+  <div id="list">
+    <ul>
+      <li v-for="code in codes">
+        <label>
+          <input type="checkbox" v-model="code.checked" />
+          <span v-bind:style="`background:${code.background};color:${code.foreground};`">{{code.label}}</span>
+        </label>
+      </li>
+    </ul>
+  </div>
+  <script>
+    const definitions = [{
+      code: 1,
+      background: "#00FF00",
+      foreground: "#000000",
+      label: "01:水田",
+      checked: true
+    }, {
+      code: 2,
+      background: "#007f00",
+      foreground: "#ffffff",
+      label: "02:畑・空地",
+      checked: true
+
+    }, {
+      code: 3,
+      background: "#f88fa7",
+      foreground: "#ffffff",
+      label: "03:果樹園（桑、茶等）",
+      checked: true
+    }, {
+      code: 4,
+      background: "#002200",
+      foreground: "#ffffff",
+      label: "04:森林",
+      checked: true
+    }, {
+      code: 5,
+      background: "#ffaa00",
+      foreground: "#000000",
+      label: "05:草地・荒地",
+      checked: true
+    }, {
+      code: 6,
+      background: "#ff0000",
+      foreground: "#ffffff",
+      label: "06:村落",
+      checked: true
+    }, {
+      code: 7,
+      background: "#7f007f",
+      foreground: "#ffffff",
+      label: "07:土手・崖",
+      checked: true
+    }, {
+      code: 8,
+      background: "#aaaa7f",
+      foreground: "#000000",
+      label: "08:砂地",
+      checked: true
+    }, {
+      code: 9,
+      background: "#00ffff",
+      foreground: "#000000",
+      label: "09:湿地",
+      checked: true
+    }, {
+      code: 10,
+      background: "#00007f",
+      foreground: "#ffffff",
+      label: "10:水面",
+      checked: true
+    }, {
+      code: 11,
+      background: "#005500",
+      foreground: "#ffffff",
+      label: "11:竹",
+      checked: true
+    }, {
+      code: 12,
+      background: "#aaaa7f",
+      foreground: "#000000",
+      label: "12:塩田",
+      checked: true
+    }];
+
+    const style = {
+      "version": 8,
+      "glyphs": "https://maps.gsi.go.jp/xyz/noto-jp/{fontstack}/{range}.pbf",
+      "sources": {
+        "hillshademap": {
+          "type": "raster",
+          "tiles": [
+            "https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png"
+          ],
+          "roundZoom": false,
+          "tileSize": 256,
+          "scheme": "xyz",
+          "minzoom": 2,
+          "maxzoom": 16,
+          "attribution": "<a href='https://maps.gsi.go.jp/development/ichiran.html'>地理院タイル</a>"
+        },
+        "habs": {
+          "type": "vector",
+          "tiles": [
+            "https://frogcat.github.io/habs-mvt/{z}/{x}/{y}.pbf"
+          ],
+          "bounds": [138.947254, 34.899013, 140.878352, 36.449966],
+          "minzoom": 12,
+          "maxzoom": 12,
+          "attribution": "<a href='https://github.com/wata909/habs_test'>明治時代初期土地利用・被覆デジタルデータベース(農研機構農業環境変動研究センター)</a>"
+        },
+
+      },
+      "layers": [{
+          "id": "background-layer",
+          "type": "background",
+          "paint": {
+            "background-color": "#000000"
+          }
+        },
+        {
+          "id": "hillshademap-layer",
+          "type": "raster",
+          "source": "hillshademap",
+          "minzoom": 2,
+          "maxzoom": 19,
+          "paint": {
+            "raster-opacity": 1
+          }
+        },
+        {
+          "id": "habs-layer",
+          "type": "circle",
+          "source": "habs",
+          "source-layer": "habs",
+          "minzoom": 11,
+          "maxzoom": 18,
+          "paint": {
+            "circle-color": [
+              "match",
+              ["get", "code"]
+            ].concat(definitions.map(a => [a.code, a.background]).flat()).concat("#000000"),
+            "circle-radius": [
+              "interpolate", ["exponential", 2],
+              ["zoom"],
+              11, 4,
+              18, 256
+            ],
+            "circle-opacity": [
+              'case',
+              ['boolean', ['feature-state', 'hover'], false],
+              1,
+              0.4
+            ]
+          }
+        }
+      ]
+    };
+
+    const map = new mapboxgl.Map({
+        container: 'map',
+        style: style,
+        center: [139.76088, 35.67803],
+        zoom: 12,
+        hash: true
+      })
+      .addControl(new mapboxgl.NavigationControl(), "top-left")
+      .addControl(new mapboxgl.ScaleControl(), "bottom-left");
+
+    const app = new Vue({
+      el: '#list',
+      data: {
+        codes: definitions
+      },
+      updated: function() {
+        const option = ["in", "code"].concat(this.codes.filter(x => x.checked).map(a => a.code));
+        map.setFilter("habs-layer", option);
+      }
+    });
+
+    let hoveredStateId = null;
+
+    const popup = new mapboxgl.Popup({
+      closeButton: false,
+      closeOnClick: false
+    });
+
+    map.on('mousemove', 'habs-layer', function(e) {
+      if (e.features.length > 0) {
+        if (hoveredStateId) {
+          map.setFeatureState({
+            source: 'habs',
+            sourceLayer: 'habs',
+            id: hoveredStateId
+          }, {
+            hover: false
+          });
+        }
+        const feature = e.features[0];
+        hoveredStateId = feature.id;
+
+        popup
+          .setLngLat(feature.geometry.coordinates)
+          .setHTML(definitions.find(x => x.code === feature.properties.code).label)
+          .addTo(map);
+
+        map.setFeatureState({
+          source: 'habs',
+          sourceLayer: 'habs',
+          id: hoveredStateId
+        }, {
+          hover: true
+        });
+      }
+    });
+
+    map.on('mouseleave', 'habs-layer', function(e) {
+      if (hoveredStateId) {
+        map.setFeatureState({
+          source: 'habs',
+          sourceLayer: 'habs',
+          id: hoveredStateId
+        }, {
+          hover: false
+        });
+      }
+      hoveredStateId = null;
+      popup.remove();
+    });
+  </script>
+
+</body>
+
+</html>
