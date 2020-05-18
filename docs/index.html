@@ -154,7 +154,7 @@
             "https://frogcat.github.io/habs-mvt/{z}/{x}/{y}.pbf"
           ],
           "bounds": [138.947254, 34.899013, 140.878352, 36.449966],
-          "minzoom": 12,
+          "minzoom": 0,
           "maxzoom": 12,
           "attribution": "<a href='https://github.com/wata909/habs_test'>明治時代初期土地利用・被覆デジタルデータベース(農研機構農業環境変動研究センター)</a>"
         },
@@ -182,7 +182,7 @@
           "type": "circle",
           "source": "habs",
           "source-layer": "habs",
-          "minzoom": 11,
+          "minzoom": 0,
           "maxzoom": 18,
           "paint": {
             "circle-color": [
@@ -192,8 +192,9 @@
             "circle-radius": [
               "interpolate", ["exponential", 2],
               ["zoom"],
-              11, 4,
-              18, 256
+              0, 4,
+              12, 4,
+              20, 4 * Math.pow(2, 20 - 12)
             ],
             "circle-opacity": [
               'case',
